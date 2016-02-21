@@ -3,6 +3,7 @@ var express = require('express');
 var directory = require('../../index');
 var util = require('../../util');
 var http = require('http');
+var files = require('serve-static');
 
 describe('middleware', function () {
     function GET(path, callback) {
@@ -30,9 +31,7 @@ describe('middleware', function () {
         app.use(directory(__dirname + '/dir1'));
         GET('/', function (err, data) {
             assert.ifError(err);
-            assert.strictEqual(typeof data, 'string');
             data = JSON.parse(data);
-            assert.strictEqual(data instanceof Array, true);
             assert.strictEqual(data.length, 2);
             assert.strictEqual(data[0].name, 'dir2');
             assert.strictEqual(data[1].name, 'file1');
@@ -44,9 +43,7 @@ describe('middleware', function () {
         app.use(directory(__dirname + '/dir1', { respond: util.withJson }));
         GET('/', function (err, data) {
             assert.ifError(err);
-            assert.strictEqual(typeof data, 'string');
             data = JSON.parse(data);
-            assert.strictEqual(data instanceof Array, true);
             assert.strictEqual(data.length, 2);
             assert.strictEqual(data[0].name, 'dir2');
             assert.strictEqual(data[1].name, 'file1');
@@ -59,7 +56,6 @@ describe('middleware', function () {
         GET('/', function (err, data) {
             assert.ifError(err);
             assert.notStrictEqual(data, '');
-            assert.strictEqual(typeof data, 'string');
             assert.notStrictEqual(data.toLowerCase().indexOf('html'), -1);
             done();
         });
@@ -114,12 +110,57 @@ describe('middleware', function () {
         app.use(directory(__dirname + '/dir1'));
         GET('/dir2', function (err, data) {
             assert.ifError(err);
-            assert.strictEqual(typeof data, 'string');
             data = JSON.parse(data);
-            assert.strictEqual(data instanceof Array, true);
             assert.strictEqual(data.length, 1);
             assert.strictEqual(data[0].name, 'file2');
             done();
         });
     });
+
+    it('should work with static dir with order of use file + dir', function (done) {
+        app.use(directory(__dirname + '/dir1'));
+        app.use(files(__dirname + '/dir1'));
+        GET('/', function (err, data) {
+            assert.ifError(err);
+            data = JSON.parse(data);
+            assert.strictEqual(data.length, 2);
+            assert.strictEqual(data[0].name, 'dir2');
+            assert.strictEqual(data[1].name, 'file1');
+            GET('/file1', function(err, data) {
+                assert.ifError(err);
+                assert.strictEqual(data, 'file1');
+                done();
+            });
+        });
+    });
+
+    it('should work with static dir with order of use dir + file', function (done) {
+        app.use(files(__dirname + '/dir1'));
+        app.use(directory(__dirname + '/dir1'));
+        GET('/', function (err, data) {
+            assert.ifError(err);
+            data = JSON.parse(data);
+            assert.strictEqual(data.length, 2);
+            assert.strictEqual(data[0].name, 'dir2');
+            assert.strictEqual(data[1].name, 'file1');
+            GET('/file1', function(err, data) {
+                assert.ifError(err);
+                assert.strictEqual(data, 'file1');
+                done();
+            });
+        });
+    });
+
+    it('should work with trailing slash', function (done) {
+        app.use(files(__dirname + '/dir1'));
+        app.use(directory(__dirname + '/dir1'));
+        GET('/dir2/', function (err, data) {
+            assert.ifError(err);
+            data = JSON.parse(data);
+            assert.strictEqual(data.length, 1);
+            assert.strictEqual(data[0].name, 'file2');
+            done();
+        });
+    });
+
 });
