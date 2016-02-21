@@ -1,8 +1,8 @@
 var assert = require('assert');
+var sinon = require('sinon');
 
 describe('util', function () {
     var util = require('../../util');
-    var sinon = require('sinon');
 
     var res, input, badInput;
 
@@ -221,4 +221,68 @@ describe('util', function () {
             });
         });
     });
+});
+
+describe('middleware', function() {
+    var createMiddleware = require('../../lib/middleware');
+
+    var targetPath, mount, fs, url, parsedReqUrl, path, req, res, options, dirEntries,
+        dirStat, fileStat1, fileStat2, fileStatPath1, fileStatPath2, mw, next;
+
+    beforeEach(function () {
+        targetPath = 'target-path';
+        mount = 'mount-dir';
+        dirEntries = ['1', '2'];
+        dirStat = { tag: 'dir-stat', isDirectory: sinon.stub().returns(true) };
+        fileStat1 = { tag: 'file-stat-1' };
+        fileStat2 = { tag: 'file-stat-2' };
+        fileStatPath1 = 'file-stat-path-1';
+        fileStatPath2 = 'file-stat-path-2';
+        req = { url: 'req-url' };
+        res = { tag: 'res' };
+        parsedReqUrl = { pathname: 'parsed-req-url' };
+        url = { parse: sinon.stub().returns(parsedReqUrl) };
+        path = { join: sinon.stub() };
+        path.join
+            .onCall(0).returns(targetPath)
+            .onCall(1).returns(fileStatPath1)
+            .onCall(2).returns(fileStatPath2);
+        fs = { lstat: sinon.stub(), readdir: sinon.stub().yields(null, dirEntries) };
+        fs.lstat
+            .onCall(0).yields(null, dirStat)
+            .onCall(1).yields(null, fileStat1)
+            .onCall(2).yields(null, fileStat2);
+        options = { fallthrough: true, respond: sinon.spy() };
+        mw = createMiddleware(fs, url, path, mount, options);
+        next = sinon.spy();
+    });
+
+    it('should respond with data', function (done) {
+        mw(req, res, next, function (err) {
+            assert.ifError(err);
+            assert.strictEqual(options.respond.callCount, 1);
+            assert.deepEqual(options.respond.firstCall.args, [
+                [
+                    { name: '1', stat: fileStat1 },
+                    { name: '2', stat: fileStat2 }
+                ],
+                res
+            ]);
+            assert.strictEqual(fs.readdir.callCount, 1);
+            assert.strictEqual(fs.readdir.firstCall.args[0], targetPath);
+            assert.strictEqual(fs.lstat.callCount, 3);
+            assert.strictEqual(fs.lstat.firstCall.args[0], targetPath);
+            assert.strictEqual(fs.lstat.secondCall.args[0], fileStatPath1);
+            assert.strictEqual(fs.lstat.thirdCall.args[0], fileStatPath2);
+            assert.strictEqual(path.join.callCount, 3);
+            assert.deepEqual(path.join.firstCall.args, [mount, parsedReqUrl.pathname]);
+            assert.deepEqual(path.join.secondCall.args, [targetPath, '1']);
+            assert.deepEqual(path.join.thirdCall.args, [targetPath, '2']);
+            assert.strictEqual(url.parse.callCount, 1);
+            assert.deepEqual(url.parse.firstCall.args, [req.url]);
+            done();
+        });
+    });
+
+    // TODO: cover error cases
 });
