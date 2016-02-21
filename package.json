@@ -4,7 +4,7 @@
   "description": "Serve directory listings",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test/integration/test.js && ./node_modules/mocha/bin/mocha test/unit/test.js"
+    "test": "./node_modules/mocha/bin/mocha test/unit/test.js && ./node_modules/mocha/bin/mocha test/integration/test.js"
   },
   "keywords": [
     "express",
@@ -15,12 +15,12 @@
   "author": "Yusup Abdullaev <nico.franza@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "async": "^1.5.2",
-    "continuate": "^0.8.2"
+    "async": "^1.5.2"
   },
   "devDependencies": {
     "express": "^4.13.4",
     "mocha": "^2.4.5",
-    "serve-static": "^1.10.2"
+    "serve-static": "^1.10.2",
+    "sinon": "^1.17.3"
   }
 }

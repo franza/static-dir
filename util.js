@@ -2,11 +2,11 @@
 
 function getType(stat) {
   if (stat.isFile()) {
-    return 'File';
+    return 'file';
   } else if (stat.isDirectory()) {
-    return 'Dir';
+    return 'dir';
   } else if (stat.isSymbolicLink()) {
-    return 'SymLink';
+    return 'sym-link';
   } else {
     throw Error('Unsupported file type');
   }
@@ -26,7 +26,7 @@ function asJson(entries) {
             lastAccessed: stat.atime.getTime(),
         };
     });
-};
+}
 
 exports.withJson = function (entries, res) {
     entries = asJson(entries);
@@ -40,9 +40,9 @@ exports.withHtml = function (entries, res) {
             '<body>' +
                 '<ul>' +
                     entries.map(function (entry) { return '<li>' + entry.name + '</li>'; }).join('') +
-                '<ul>' +
-            '<body>' +
+                '</ul>' +
+            '</body>' +
         '</html>';
-    res.writeHead(200, { "Content-Type": "text/hmtl" });
+    res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(html);
 };
