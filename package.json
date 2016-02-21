@@ -1,0 +1,21 @@
+{
+  "name": "static-dir",
+  "version": "0.1.0",
+  "description": "Serve directory listings",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "express",
+    "static",
+    "directory",
+    "listing"
+  ],
+  "author": "Yusup Abdullaev <nico.franza@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^1.5.2",
+    "continuate": "^0.8.2"
+  }
+}
