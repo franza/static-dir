@@ -12,19 +12,37 @@ function getType(stat) {
   }
 }
 
-exports.asJson = function (entries) {
-    var type = getType(entries.stat);
-    return {
-        type: type,
-        name: entries.name,
-        size: entries.stat.size,
-        creation_time: entries.stat.birthtime,
-        last_modification_time: entries.stat.mtime.getTime(),
-        last_access_time: entries.stat.atime.getTime(),
-    };
+function asJson(entries) {
+    return entries.map(function (entry) {
+        var type = getType(entry.stat);
+        var name = entry.name;
+        var stat = entry.stat;
+        return {
+            type: type,
+            name: name,
+            size: stat.size,
+            created: stat.birthtime,
+            modified: stat.mtime.getTime(),
+            lastAccessed: stat.atime.getTime(),
+        };
+    });
 };
 
-exports.withJson = function (data, res) {
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.end(JSON.stringify(data));
+exports.withJson = function (entries, res) {
+    entries = asJson(entries);
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(entries));
+};
+
+exports.withHtml = function (entries, res) {
+    var html =
+        '<html>' +
+            '<body>' +
+                '<ul>' +
+                    entries.map(function (entry) { return '<li>' + entry.name + '</li>'; }).join('\n') +
+                '<ul>' +
+            '<body>' +
+        '</html>';
+    res.writeHead(200, { "Content-Type": "text/hmtl" });
+    res.end(html);
 };
