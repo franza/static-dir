@@ -39,7 +39,7 @@ exports.withHtml = function (entries, res) {
         '<html>' +
             '<body>' +
                 '<ul>' +
-                    entries.map(function (entry) { return '<li>' + entry.name + '</li>'; }).join('\n') +
+                    entries.map(function (entry) { return '<li>' + entry.name + '</li>'; }).join('') +
                 '<ul>' +
             '<body>' +
         '</html>';

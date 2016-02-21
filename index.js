@@ -7,7 +7,9 @@ var path = require('path');
 var createMiddleware = require('./lib/middleware');
 var util = require('./util');
 
-module.export = function (mount, options) {
-    options.respond = util.withJson;
+module.exports = function (mount, options) {
+    options = options || {};
+    options.respond = options.respond || util.withJson;
+    options.fallthrough = options.fallthrough !== false;
     return createMiddleware(fs, url, path, mount, options);
 };
